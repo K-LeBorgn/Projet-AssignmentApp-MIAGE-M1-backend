@@ -3,7 +3,8 @@ let app = express();
 let bodyParser = require('body-parser');
 let assignment = require('./routes/assignments');
 let matiere = require('./routes/matieres');
-let eleve = require('./routes/eleves');
+let user = require('./routes/users');
+let { verifyToken } = require('./middleware');
 
 let mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
@@ -47,22 +48,33 @@ const prefix = '/api';
 
 app.route(prefix + '/assignments')
   .get(assignment.getAssignments)
-    .post(assignment.postAssignment)
-    .put(assignment.updateAssignment);
+  .post(assignment.postAssignment)
+  .put(assignment.updateAssignment);
+
+app.route(prefix + '/assignments/search/')
+  .get(assignment.getAssignmentsByName);
 
 app.route(prefix + '/assignments/:id')
-  .get(assignment.getAssignment)
+  .get(verifyToken, assignment.getAssignment)
   .delete(assignment.deleteAssignment);
 
 app.route(prefix + '/matieres')
-    .get(matiere.getMatieres)
-    .post(matiere.postMatiere);
+  .get(matiere.getMatieres)
+  .post(matiere.postMatiere);
 
-app.route(prefix + '/eleves')
-    .get(eleve.getEleves)
-    .post(eleve.postEleve);
+app.route(prefix + '/login')
+  .post(user.login)
+
+app.route(prefix + '/register')
+  .post(user.register)
+
+app.route(prefix + '/logout')
+  .post(user.logout)
 
 
+app.route(prefix + '/updateAccessToken')
+  .post(user.updateAccessToken)
+  
 // On démarre le serveur
 app.listen(port, "0.0.0.0");
 console.log('Serveur démarré sur http://localhost:' + port);

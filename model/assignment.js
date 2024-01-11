@@ -9,7 +9,7 @@ let AssignmentSchema = Schema({
     rendu: Boolean,
     auteur:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Eleve', // Référence au modèle Eleve
+        ref: 'User', // Référence au modèle User
     },
     matiere: {
         type: mongoose.Schema.Types.ObjectId,

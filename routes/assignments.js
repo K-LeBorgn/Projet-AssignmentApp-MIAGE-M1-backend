@@ -12,7 +12,7 @@ function getAssignments(req, res) {
             if (err) {
                 res.send(err);
             }
-            Assignment.populate(assignments.docs, { path: 'matiere auteur' })
+            Assignment.populate(assignments.docs, { path: 'matiere auteur', select: '-password' })
                 .then((populatedDocs) => {
                     assignments.docs = populatedDocs;
                     console.log(assignments);
@@ -32,11 +32,42 @@ function getAssignment(req, res){
 
     Assignment.findOne({id: assignmentId}, (err, assignment) =>{
         if(err){res.send(err)}
-        Assignment.populate(assignment, { path: 'matiere auteur'})
+        Assignment.populate(assignment, { path: 'matiere auteur' , select: '-password'})
             .then((assignment) =>
                 res.json(assignment)
             )
     })
+}
+
+function getAssignmentsByName(req, res){
+    let assignmentName = req.query.name;
+
+    let aggregateQuery = Assignment.aggregate();
+
+    if (assignmentName) {
+        aggregateQuery.match({nom: {$regex: assignmentName, $options: "i"}})
+    }
+
+    Assignment.aggregatePaginate(aggregateQuery,
+        {
+            page: parseInt(req.query.page) || 1,
+            limit: parseInt(req.query.limit) || 10,
+        },
+        (err, assignments) => {
+            if (err) {
+                res.send(err);
+            }
+            Assignment.populate(assignments.docs, { path: 'matiere auteur', select: '-password' })
+                .then((populatedDocs) => {
+                    assignments.docs = populatedDocs;
+                    console.log(assignments);
+                    res.send(assignments);
+                })
+                .catch((err) => {
+                    res.send(err);
+                });
+        }
+    );
 }
 
 // Ajout d'un assignment (POST)
@@ -92,4 +123,5 @@ function deleteAssignment(req, res) {
 
 
 
-module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment };
+
+module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment, getAssignmentsByName };
