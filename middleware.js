@@ -7,14 +7,19 @@ function verifyToken(req, res, next){
     const bearerHeader = req.headers['authorization'];
     if(typeof bearerHeader !== 'undefined'){
         req.token = bearerHeader.split(' ')[1];
-        next();
+        console.log(req.token)
+        jwt.verify(req.token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+            if(err) return res.sendStatus(403);
+            req.user = user;
+            next();
+        });
     }else{
         res.status(403).json({ message: 'Forbidden, need accessToken' });
     }
 }
 
 function createAccessToken(user){
-    return jwt.sign({username: user.username}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '20m'});
+    return jwt.sign({username: user.username}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '20s'});
 }
 
 function createRefreshToken(user){
@@ -29,7 +34,7 @@ function removeRefreshToken(token){
 
 function refreshToken(refreshToken, username){
     if(!refreshTokens.includes(refreshToken)) return false;
-    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+    return jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
         if(err) return res.sendStatus(403);
         const accessToken = createAccessToken({username: username});
         return accessToken;

@@ -70,6 +70,28 @@ function getAssignmentsByName(req, res){
     );
 }
 
+function getAssignmentsRendu(req, res){
+    Assignment.aggregatePaginate(Assignment.aggregate().match({rendu: true}),
+    {
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 10,
+    },
+    (err, assignments) => {
+        if (err) {
+            res.send(err);
+        }
+        Assignment.populate(assignments.docs, { path: 'matiere auteur', select: '-password' })
+            .then((populatedDocs) => {
+                assignments.docs = populatedDocs;
+                console.log(assignments);
+                res.send(assignments);
+            })
+            .catch((err) => {
+                res.send(err);
+            });
+    });
+}
+
 // Ajout d'un assignment (POST)
 function postAssignment(req, res){
     let assignment = new Assignment();
@@ -124,4 +146,4 @@ function deleteAssignment(req, res) {
 
 
 
-module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment, getAssignmentsByName };
+module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment, getAssignmentsByName, getAssignmentsRendu };

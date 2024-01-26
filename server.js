@@ -1,5 +1,9 @@
 let express = require('express');
+var cors = require('cors')
 let app = express();
+app.use(cors({
+  allowedHeaders: "Authorization, Origin, X-Requested-With, Content-Type, Accept",
+}))
 let bodyParser = require('body-parser');
 let assignment = require('./routes/assignments');
 let matiere = require('./routes/matieres');
@@ -49,14 +53,17 @@ const prefix = '/api';
 app.route(prefix + '/assignments')
   .get(assignment.getAssignments)
   .post(assignment.postAssignment)
-  .put(assignment.updateAssignment);
+  .put(verifyToken, assignment.updateAssignment);
 
 app.route(prefix + '/assignments/search/')
   .get(assignment.getAssignmentsByName);
 
+app.route(prefix + '/assignments/rendu')
+  .get(assignment.getAssignmentsRendu);
+
 app.route(prefix + '/assignments/:id')
-  .get(verifyToken, assignment.getAssignment)
-  .delete(assignment.deleteAssignment);
+  .get(assignment.getAssignment)
+  .delete(verifyToken, assignment.deleteAssignment);
 
 app.route(prefix + '/matieres')
   .get(matiere.getMatieres)
@@ -64,9 +71,6 @@ app.route(prefix + '/matieres')
 
 app.route(prefix + '/login')
   .post(user.login)
-
-app.route(prefix + '/register')
-  .post(user.register)
 
 app.route(prefix + '/logout')
   .post(user.logout)
